@@ -169,12 +169,12 @@ def main(length, output_file='goo_gl_results.csv', wait_time=1, batch_size=20, s
 if __name__ == "__main__":
     # Adjust length, output_file, wait_time, and batch_size as needed
     length = 4  # Length of IDs to check
-    output_file = 'goo_gl_results.csv'
+    output_file = 'goo_gl_results_aaaa-a999.csv'
     wait_time = 0.5  # Wait time between requests in seconds
     batch_size = 20  # Number of results to save in each batch
     
-    start_id = "aaPa"  # Start ID (inclusive)
-    end_id = "aaP0"    # End ID (exclusive)
+    start_id = "aaaa"  # Start ID (inclusive)
+    end_id = "a999"    # End ID (exclusive)
     
     print(f"Starting the script with length {length}, output file '{output_file}', wait time {wait_time} seconds, and batch size {batch_size}.")
     print(f"Checking IDs from {start_id} to {end_id}")
