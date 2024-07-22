@@ -6,28 +6,71 @@ from urllib.parse import urlparse
 from termcolor import colored  # For colored terminal output
 
 class IDGenerator:
-    def __init__(self, length, characters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"):
+    def __init__(self, length, characters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", start_id=None, end_id=None):
         self.length = length
         self.characters = characters
-        self.current_index = [0] * length  # Initialize index array
-        self.total_generated = 0  # Counter for total generated IDs
+        self.num_characters = len(characters)
+        self.current_index = [0] * length
+        self.start_id = start_id
+        self.end_id = end_id
         
+        # Set start index
+        if self.start_id:
+            if len(self.start_id) != self.length:
+                raise ValueError(f"Start ID length must be {self.length}")
+            self.current_index = self._id_to_index(self.start_id)
+        else:
+            self.current_index = [0] * length
+        
+        self.finished = False
+    
+    def _id_to_index(self, id_str):
+        return [self.characters.index(char) for char in id_str]
+    
+    def _index_to_id(self, index_list):
+        return ''.join(self.characters[idx] for idx in index_list)
+    
+    def _index_to_number(self, index_list):
+        number = 0
+        for idx in index_list:
+            number = number * self.num_characters + idx
+        return number
+    
+    def _id_to_number(self, id_str):
+        return self._index_to_number(self._id_to_index(id_str))
+    
     def next_id(self):
-        id_str = ''.join(self.characters[idx] for idx in self.current_index)
+        id_str = self._index_to_id(self.current_index)
         self._increment_index()
-        self.total_generated += 1
         return id_str
     
     def _increment_index(self):
         for i in range(self.length - 1, -1, -1):
             self.current_index[i] += 1
-            if self.current_index[i] >= len(self.characters):
+            if self.current_index[i] >= self.num_characters:
                 self.current_index[i] = 0
             else:
                 break
     
     def is_finished(self):
-        return all(idx == 0 for idx in self.current_index) and self.total_generated > 0
+        if self.end_id:
+            end_number = self._id_to_number(self.end_id)
+            current_number = self._id_to_number(self._index_to_id(self.current_index))
+            if current_number > end_number:
+                return True
+        return all(idx == 0 for idx in self.current_index) and not self.start_id
+    
+    def __lt__(self, other):
+        return self._id_to_number(self._index_to_id(self.current_index)) < self._id_to_number(other._index_to_id(other.current_index))
+    
+    def __le__(self, other):
+        return self._id_to_number(self._index_to_id(self.current_index)) <= self._id_to_number(other._index_to_id(other.current_index))
+    
+    def __gt__(self, other):
+        return self._id_to_number(self._index_to_id(self.current_index)) > self._id_to_number(other._index_to_id(other.current_index))
+    
+    def __ge__(self, other):
+        return self._id_to_number(self._index_to_id(self.current_index)) >= self._id_to_number(other._index_to_id(other.current_index))
 
 # Function to check if a goo.gl-like link resolves to a valid URL
 def check_goo_gl_link(short_id):
@@ -92,8 +135,8 @@ def load_checked_ids(filename):
     return checked_ids
 
 # Main function to iterate through all possible IDs of specified lengths
-def main(length, output_file='goo_gl_results.csv', wait_time=1, batch_size=20):
-    generator = IDGenerator(length)
+def main(length, output_file='goo_gl_results.csv', wait_time=1, batch_size=20, start_id=None, end_id=None):
+    generator = IDGenerator(length, start_id=start_id, end_id=end_id)
     checked_ids = load_checked_ids(output_file)
     results = {}
     total_ids = len(generator.characters) ** length
@@ -127,9 +170,13 @@ if __name__ == "__main__":
     # Adjust length, output_file, wait_time, and batch_size as needed
     length = 4  # Length of IDs to check
     output_file = 'goo_gl_results.csv'
-    wait_time = 0.0  # Wait time between requests in seconds
+    wait_time = 0.5  # Wait time between requests in seconds
     batch_size = 20  # Number of results to save in each batch
     
+    start_id = "aaPa"  # Start ID (inclusive)
+    end_id = "aaP0"    # End ID (exclusive)
+    
     print(f"Starting the script with length {length}, output file '{output_file}', wait time {wait_time} seconds, and batch size {batch_size}.")
-    main(length, output_file, wait_time, batch_size)
+    print(f"Checking IDs from {start_id} to {end_id}")
+    main(length, output_file, wait_time, batch_size, start_id=start_id, end_id=end_id)
 
