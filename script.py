@@ -127,7 +127,7 @@ if __name__ == "__main__":
     # Adjust length, output_file, wait_time, and batch_size as needed
     length = 4  # Length of IDs to check
     output_file = 'goo_gl_results.csv'
-    wait_time = 0.1  # Wait time between requests in seconds
+    wait_time = 0.0  # Wait time between requests in seconds
     batch_size = 20  # Number of results to save in each batch
     
     print(f"Starting the script with length {length}, output file '{output_file}', wait time {wait_time} seconds, and batch size {batch_size}.")
