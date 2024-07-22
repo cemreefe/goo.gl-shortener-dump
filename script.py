@@ -108,6 +108,10 @@ def check_goo_gl_link(short_id):
     
     # Handle connection errors and timeouts
     except requests.RequestException as e:
+        parsed_url = urlparse(str(e))
+        if 'goo.gl' not in parsed_url.hostname:
+            print(colored(f"Request failed for {short_id}: {str(e)}", 'grey'))
+            return url  # Consider non-goo.gl URLs as valid
         print(colored(f"Request failed for {short_id}: {str(e)}", 'red'))
         return None
 
@@ -140,10 +144,13 @@ def main(length, output_file='goo_gl_results.csv', wait_time=1, batch_size=20, s
     checked_ids = load_checked_ids(output_file)
     results = {}
     total_ids = len(generator.characters) ** length
+    processed_count = 0
     print(f"Total IDs to check: {total_ids}")
 
     while not generator.is_finished():
         short_id = generator.next_id()
+        processed_count += 1
+        
         if short_id in checked_ids:
             print(colored(f"Skipping {short_id}, already checked", 'grey'))
             continue  # Skip IDs that have already been checked
@@ -155,14 +162,14 @@ def main(length, output_file='goo_gl_results.csv', wait_time=1, batch_size=20, s
         # Save results in batches
         if len(results) >= batch_size:
             save_to_csv(results, output_file)
-            print(f"Progress: {len(results)} / {total_ids}")
+            print(f"Progress: {processed_count} / {total_ids}")
             results = {}  # Clear results batch
             time.sleep(wait_time)  # Add a configurable wait time between batches
     
     # Save any remaining results
     if results:
         save_to_csv(results, output_file)
-        print(f"Progress: {len(results)} / {total_ids}")
+        print(f"Progress: {processed_count} / {total_ids}")
     
     print(f"Finished. Results saved to {output_file}")
 
